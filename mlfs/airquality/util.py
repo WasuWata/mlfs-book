@@ -296,7 +296,34 @@ def backfill_predictions_for_monitoring(weather_fg, air_quality_df, monitor_fg, 
     features_df = weather_fg.read()
     features_df = features_df.sort_values(by=['date'], ascending=True)
     features_df = features_df.tail(10)
-    features_df['predicted_pm25'] = model.predict(features_df[['temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
+    features_df['predicted_pm25'] = model.predict(features_df[['rolling','temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
+    df = pd.merge(features_df, air_quality_df[['date','pm25','street','country']], on="date")
+    df['days_before_forecast_day'] = 1
+    hindcast_df = df
+    df = df.drop('pm25', axis=1)
+    monitor_fg.insert(df, write_options={"wait_for_job": True})
+    return hindcast_df
+
+def backfill_predictions_for_monitoring_predicted(weather_fg, air_quality_df, monitor_fg, model,country,city,street,url):
+    features_df = weather_fg.read()
+    features_df = features_df.sort_values(by=['date'], ascending=True)
+    features_df = features_df.tail(10)
+    days = 10
+    current_date = features_df['date'].min()
+    last_date = current_date + datetime.timedelta(-3) # For 3-days rolling window
+    rolling_data = air_quality_df[(air_quality_df['date'] <= current_date + datetime.timedelta(-1)) & ((air_quality_df['date'] > last_date + datetime.timedelta(-1)))]
+    for day in range(days):
+        rolling_data = rolling_data[(rolling_data['date'] <= current_date + datetime.timedelta(day-1)) & (rolling_data['date'] > last_date + datetime.timedelta(day-1))]
+        pm25_data_3days = rolling_data['pm25']
+        predicted_date = current_date + datetime.timedelta(day)
+        rolling = pm25_data_3days.mean()
+        rolling = rolling.astype('float32')
+        new_row = {'date': predicted_date, 'pm25': 0, 'country':country,'city':city,'street':street,'url':url,'rolling':rolling}
+        features_df.loc[features_df['date'] == predicted_date,'rolling'] = rolling
+        features_df.loc[features_df['date'] == predicted_date,'predicted_pm25'] = model.predict(features_df[features_df['date'] == predicted_date][['rolling','temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
+        rolling_data = pd.concat([rolling_data, pd.DataFrame([new_row])], ignore_index=True)
+        rolling_data.loc[rolling_data['date'] == predicted_date, 'pm25'] = features_df.loc[features_df['date'] == predicted_date,'predicted_pm25'].values[0]
+
     df = pd.merge(features_df, air_quality_df[['date','pm25','street','country']], on="date")
     df['days_before_forecast_day'] = 1
     hindcast_df = df
