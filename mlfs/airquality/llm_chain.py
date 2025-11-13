@@ -7,7 +7,8 @@ from langchain.memory import ConversationBufferWindowMemory
 import torch
 import datetime
 from typing import Any, Dict, Union
-from functions.context_engineering import get_context_data
+from .context_engineering import get_context_data
+# from functions.context_engineering import get_context_data
 import os
 from safetensors.torch import load_model, save_model
 
@@ -43,7 +44,7 @@ def load_model(model_id: str = "teknium/OpenHermes-2.5-Mistral-7B") -> tuple:
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,
     )
-
+    bnb_config = BitsAndBytesConfig(load_in_8bit=True)
     model_path = "/tmp/mistral/model"
     if os.path.exists(model_path):
         print("Loading model from disk")
@@ -52,8 +53,10 @@ def load_model(model_id: str = "teknium/OpenHermes-2.5-Mistral-7B") -> tuple:
         # Load the Mistral-7B-Instruct model with quantization configuration
         model_llm = AutoModelForCausalLM.from_pretrained(
             model_id,
-            device_map="auto",
+            device_map="cuda:0",
             quantization_config=bnb_config,
+            torch_dtype=torch.float16,  # Use half precision to save memory
+            low_cpu_mem_usage=True
         )
         model_llm.save_pretrained(model_path)
 
