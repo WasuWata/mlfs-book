@@ -313,14 +313,33 @@ def backfill_predictions_for_monitoring_predicted(weather_fg, air_quality_df, mo
     last_date = current_date + datetime.timedelta(-3) # For 3-days rolling window
     rolling_data = air_quality_df[(air_quality_df['date'] <= current_date + datetime.timedelta(-1)) & ((air_quality_df['date'] > last_date + datetime.timedelta(-1)))]
     for day in range(days):
-        rolling_data = rolling_data[(rolling_data['date'] <= current_date + datetime.timedelta(day-1)) & (rolling_data['date'] > last_date + datetime.timedelta(day-1))]
-        pm25_data_3days = rolling_data['pm25']
+        rolling_data_pseu = rolling_data
+        last_date = current_date + datetime.timedelta(-3) # For 3-days rolling window
+        rolling_data = rolling_data_pseu[(rolling_data['date'] <= current_date + datetime.timedelta(day-1)) & (rolling_data_pseu['date'] > last_date + datetime.timedelta(day-1))]
         predicted_date = current_date + datetime.timedelta(day)
-        rolling = pm25_data_3days.mean()
-        rolling = rolling.astype('float32')
-        new_row = {'date': predicted_date, 'pm25': 0, 'country':country,'city':city,'street':street,'url':url,'rolling':rolling}
-        features_df.loc[features_df['date'] == predicted_date,'rolling'] = rolling
-        features_df.loc[features_df['date'] == predicted_date,'predicted_pm25'] = model.predict(features_df[features_df['date'] == predicted_date][['rolling','temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
+        pm25_data_3days = rolling_data['pm25']
+        rolling3 = pm25_data_3days.mean()
+        rolling3= rolling3.astype('float32')
+
+        last_date = current_date + datetime.timedelta(-2) # For 2-days rolling window
+        rolling_data = rolling_data[(rolling_data_pseu['date'] <= current_date + datetime.timedelta(day-1)) & (rolling_data_pseu['date'] > last_date + datetime.timedelta(day-1))]
+        predicted_date = current_date + datetime.timedelta(day)
+        pm25_data_2days = rolling_data['pm25']
+        rolling2 = pm25_data_2days.mean()
+        rolling2= rolling2.astype('float32')
+
+        last_date = current_date + datetime.timedelta(-1) # For 1-days rolling window
+        rolling_data = rolling_data[(rolling_data_pseu['date'] <= current_date + datetime.timedelta(day-1)) & (rolling_data_pseu['date'] > last_date + datetime.timedelta(day-1))]
+        predicted_date = current_date + datetime.timedelta(day)
+        pm25_data_1days = rolling_data['pm25']
+        rolling1 = pm25_data_1days.mean()
+        rolling1= rolling1.astype('float32')
+        
+        new_row = {'date': predicted_date, 'pm25': 0, 'country':country,'city':city,'street':street,'url':url,'rolling1':rolling1,'rolling2':rolling2,'rolling3':rolling3}
+        features_df.loc[features_df['date'] == predicted_date,'rolling1'] = rolling1
+        features_df.loc[features_df['date'] == predicted_date,'rolling2'] = rolling2
+        features_df.loc[features_df['date'] == predicted_date,'rolling3'] = rolling3
+        features_df.loc[features_df['date'] == predicted_date,'predicted_pm25'] = model.predict(features_df[features_df['date'] == predicted_date][['rolling1','rolling2','rolling3','temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
         rolling_data = pd.concat([rolling_data, pd.DataFrame([new_row])], ignore_index=True)
         rolling_data.loc[rolling_data['date'] == predicted_date, 'pm25'] = features_df.loc[features_df['date'] == predicted_date,'predicted_pm25'].values[0]
 
