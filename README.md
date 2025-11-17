@@ -1,15 +1,19 @@
 # PM2.5 Forecasting of Stockholm St. Eriksgatan 83
 
 ## Project Description
-In this project, we use weather data (Open-meteo) and PM2.5 data (AQICN) of selected street, in order to train the XGBoost model and forecast the future PM2.5 level of the sensor. In addition, we utilize the Huggingface Gradio to create the dashboard, to visualize the prediction, feature importance, and performance of the model.
+In the present, air pollution has become one of the most significant problems to our world, especially for both people's physical and mental health. Because of that, it will be benefit if we create the model to predict the air quality from the available sensors in the opensource, so we expect to see both the future PM2.5 level and the feature importance of the environment's properties to PM2.5 level.
 
+## Data Source and Data Acquisition
+In this project, we use weather data (Open-meteo) and PM2.5 data (AQICN) of selected street, in order to train the model and forecast the future PM2.5 level of the sensor. In addition, we utilize the Huggingface Gradio to create the dashboard, to visualize the prediction, feature importance, and performance of the model.
 
-[Dashboards for PM2.5 Prediction](https://huggingface.co/spaces/wasu2704/Iris)
+Additionally, we use the github action and github workflow to do the daily data acquisition of PM2.5 data and generate the batch inference of PM2.5 for future 7 days.
+
 [Air quality data from AQICN](https://aqicn.org/city/sweden/stockholm-st-eriksgatan-83/)
 
+[Weather data from Open-meteo](https://open-meteo.com/)
 
 
-# Feature Selection
+## Feature Selection
 We selected total seven features, four from weather data and another three creating from PM2.5 data, according to the table below.
 | Features | Description |
 | -------- | ----------- |
@@ -23,3 +27,12 @@ We selected total seven features, four from weather data and another three creat
 
 From the feature importance, it is apparent that the `lagging1` and `temperature_2m_mean` are the most important features for our XGBoost model. While `lagging2` and `lagging3` are far less important compared to `lagging1`, that means the previous one day data has the significant effect to the PM2.5 level. On the other hand, `precipitation_sum` is the least important feature among all features.
 ![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/notebooks/airquality/air_quality_model/images/feature_importance.png)
+
+## Model Training and Result
+We used the XGBoost model to train the acquired data, setting the data before 2025-05-01 as training data and after that as test data. As a result, we can see the performance of the model according to the graph.
+![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/notebooks/airquality/air_quality_model/images/pm25_hindcast.png)
+Compared to the original features, without lagging features, it is obvious that just adding the lagging features helps tremendously increase the model performance, from MSE = 155.21/R2 = -0.709 to MSE = 55.905/R2 = 0.3998. It is because of the new features. In the real world, it is understandable that the PM2.5 level of the current date will be affected from PM2.5 level of the past dates, like it is treated as the source for the current date. So, it is beneficial to add the lagging features.
+[Dashboards for PM2.5 Prediction](https://huggingface.co/spaces/wasu2704/Iris)
+
+## Conclusion
+To be concluded, we can produce the model to predict and see the feature importance with the relatively good accuracy (MSE = 55.905/R2 = 0.3998), however, we personally think that the feature is not enough. For the weather data, we have temperature, wind, and precipitation which indicate the advection of the PM2.5 particles. For the air quality data, we have lagging1/2/3 data which indicate the previous PM2.5 level. There is nothing as the indicator of the source of PM2.5 level, if we have more data about it, the result of the model might be much more better.
