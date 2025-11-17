@@ -34,5 +34,11 @@ We used the XGBoost model to train the acquired data, setting the data before 20
 Compared to the original features, without lagging features, it is obvious that just adding the lagging features helps tremendously increase the model performance, from MSE = 155.21/R2 = -0.709 to MSE = 55.905/R2 = 0.3998. It is because of the new features. In the real world, it is understandable that the PM2.5 level of the current date will be affected from PM2.5 level of the past dates, like it is treated as the source for the current date. So, it is beneficial to add the lagging features.
 [Dashboards for PM2.5 Prediction](https://huggingface.co/spaces/wasu2704/Iris)
 
+## Future Forecasting
+We will use the mentioned features for PM2.5 forcasting (7 days), however, the problem occurs when we try to predict the PM2.5 at D+2,D+3,... because we do not have the PM2.5 data of D+1 from the historical dat. So, we will use the predicted data of D+i as the lagging data of D+i+1, then we do it recursively to the 7th day. As as result, we got the graphs below. Additionally, we do the hindcast 1 day to see the performance of our model daily.
+
+![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/docs/air-quality/assets/img/pm25_forecast.png)
+![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/docs/air-quality/assets/img/pm25_hindcast_1day.png)
+
 ## Conclusion
 To be concluded, we can produce the model to predict and see the feature importance with the relatively good accuracy (MSE = 55.905/R2 = 0.3998), however, we personally think that the feature is not enough. For the weather data, we have temperature, wind, and precipitation which indicate the advection of the PM2.5 particles. For the air quality data, we have lagging1/2/3 data which indicate the previous PM2.5 level. There is nothing as the indicator of the source of PM2.5 level, if we have more data about it, the result of the model might be much more better.
