@@ -1,16 +1,27 @@
-# mlfs-book
+# PM2.5 Forecasting of Stockholm St. Eriksgatan 83
 O'Reilly book - Building Machine Learning Systems with a feature store: batch, real-time, and LLMs
 
 
-## ML System Examples
+## Project Description
+In this project, we use weather data (Open-meteo) and PM2.5 data (AQICN) of selected street, in order to train the XGBoost model and forecast the future PM2.5 level of the sensor. In addition, we utilize the Huggingface Gradio to create the dashboard, to visualize the prediction, feature importance, and performance of the model.
 
 
-[Dashboards for Example ML Systems](https://featurestorebook.github.io/mlfs-book/)
+[Dashboards for PM2.5 Prediction](https://huggingface.co/spaces/wasu2704/Iris)
 
 
 
 
-# Run Air Quality Tutorial
+# Feature Selection
+We selected total seven features, four from weather data and another three creating from PM2.5 data, according to the table below.
+| Features | Description |
+| -------- | ----------- |
+|`temperature_2m_mean`||
+|||
+|||
+|||
+|||
+|||
+|||
 
 See [tutorial instructions here](https://docs.google.com/document/d/1YXfM1_rpo1-jM-lYyb1HpbV9EJPN6i1u6h2rhdPduNE/edit?usp=sharing)
     # Create a conda or virtual environment for your project
