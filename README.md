@@ -28,14 +28,17 @@ We selected total seven features, four from weather data and another three creat
 From the feature importance, it is apparent that the `lagging1` and `temperature_2m_mean` are the most important features for our XGBoost model. While `lagging2` and `lagging3` are far less important compared to `lagging1`, that means the previous one day data has the significant effect to the PM2.5 level. On the other hand, `precipitation_sum` is the least important feature among all features.
 ![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/notebooks/airquality/air_quality_model/images/feature_importance.png)
 
+Additionally, PM2.5 levels are mostly influenced by weather rather than car traffic or industry. Nevertheless, it could be interesting to add features such as the day of the week (e.g., whether it is a working day or a rest day like Sunday, when there may be less traffic) to see whether the model performs better and whether these features are important.
+
 ## Model Training and Result
 We used the XGBoost model to train the acquired data, setting the data before 2025-05-01 as training data and after that as test data. As a result, we can see the performance of the model according to the graph.
 ![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/notebooks/airquality/air_quality_model/images/pm25_hindcast.png)
-Compared to the original features, without lagging features, it is obvious that just adding the lagging features helps tremendously increase the model performance, from MSE = 155.21/R2 = -0.709 to MSE = 55.905/R2 = 0.3998. It is because of the new features. In the real world, it is understandable that the PM2.5 level of the current date will be affected from PM2.5 level of the past dates, like it is treated as the source for the current date. So, it is beneficial to add the lagging features.
+Compared to the original features, without lagging features, it is obvious that just adding the lagging features helps tremendously increase the model performance, from MSE = 155.21/R2 = -0.709 to MSE = 55.905/R2 = 0.3998. It is because of the new features. In the real world, it is understandable that the PM2.5 level of the current date will be affected from PM2.5 level of the past dates, like it is treated as the source for the current date. So, it is beneficial to add the lagging features. Also, It could also be useful to train a single model on several sensors from the same area to increase the amount of data, and then fine-tune it for a specific sensor.
+
 [Dashboards for PM2.5 Prediction](https://huggingface.co/spaces/wasu2704/Iris)
 
 ## Future Forecasting
-We will use the mentioned features for PM2.5 forcasting (7 days), however, the problem occurs when we try to predict the PM2.5 at D+2,D+3,... because we do not have the PM2.5 data of D+1 from the historical dat. So, we will use the predicted data of D+i as the lagging data of D+i+1, then we do it recursively to the 7th day. As as result, we got the graphs below. Additionally, we do the hindcast 1 day to see the performance of our model daily.
+We will use the mentioned features for PM2.5 forcasting (7 days), however, the problem occurs when we try to predict the PM2.5 at D+2,D+3,... because we do not have the PM2.5 data of D+1 from the historical dat. So, we will use the predicted data of D+i as the lagging data of D+i+1, then we do it recursively to the 7th day, so the result of D+7 may lead to a high error due to the accumulation of errors across each daily prediction. As as result, we got the graphs below. Additionally, we do the hindcast 1 day to see the performance of our model daily.
 
 ![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/docs/air-quality/assets/img/pm25_forecast.png)
 ![alt text](https://raw.githubusercontent.com/WasuWata/mlfs-book/main/docs/air-quality/assets/img/pm25_hindcast_1day.png)
